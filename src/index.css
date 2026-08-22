@@ -1,0 +1,10 @@
+@import "tailwindcss";
+
+/* Clases extra para ocultar las barras de scroll feas y dejarlo prolijo */
+.hide-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.hide-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
