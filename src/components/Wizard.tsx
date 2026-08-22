@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowRight, ArrowLeft, PartyPopper, Sparkles, LayoutTemplate, Image as ImageIcon, MapPin, Phone, AtSign, Monitor, Smartphone, Plus, Trash2, Star, Type, BarChart3, CalendarHeart, Award, HeartHandshake, BoxSelect, CreditCard, Link as LinkIcon, Info, Loader2 } from 'lucide-react';
 import type { OnboardingData } from '../types';
 import ImageUpload from './ImageUpload';
-import AddressAutocomplete from './AddressAutocomplete'; // <-- ACÁ IMPORTAMOS EL BUSCADOR MÁGICO
+import AddressAutocomplete from './AddressAutocomplete'; 
 
 // --- IMPORTACIONES DE FIREBASE ---
 import { db } from '../firebase';
@@ -134,7 +134,7 @@ export default function Wizard() {
     // T3 y T4
     if (step === 'SERVICES_DEF') {
       const validServices = data.services.filter(s => s.title.trim() !== '' && s.description.trim() !== '');
-      return validServices.length < 6; // OBLIGATORIO 6 SERVICIOS
+      return validServices.length < 6;
     }
     if (step === 'STRENGTHS') return data.strengths.trim() === '';
 
@@ -201,7 +201,8 @@ export default function Wizard() {
       if (data.domainType === 'Profesional') {
         const confirmacion = window.confirm("¡Toda tu información se guardó correctamente! 🎉\n\nAl hacer clic en Aceptar, vas a ser redirigido a MercadoPago para abonar los $15.000 de la gestión de tu dominio .com");
         if (confirmacion) {
-          window.location.href = "TU_LINK_DE_MERCADO_PAGO_AQUI"; 
+          // 🔥 ACÁ ESTÁ TU LINK OFICIAL DE MERCADOPAGO 🔥
+          window.location.href = "https://mpago.la/1iLbwZF"; 
         }
       } else {
         alert("¡Éxito! 🎉\n\nTu formulario fue enviado a nuestro equipo. Nos pondremos a trabajar pronto.");
@@ -224,7 +225,6 @@ export default function Wizard() {
         <div className="w-full max-w-5xl flex items-center justify-between">
           <img src="/assets/Logo.webp" alt="Logo" className="h-8 md:h-10 w-auto opacity-90" />
           
-          {/* Barra de progreso movida ARRIBA */}
           {currentStep.id !== 'WELCOME' && currentStep.id !== 'END' && (
             <div className="flex gap-1.5 md:gap-2">
               {steps.map((s, i) => (
@@ -289,7 +289,6 @@ export default function Wizard() {
               </div>
             )}
 
-            {/* === LOGO REDISEÑADO === */}
             {currentStep.id === 'LOGO' && (
               <div className="flex flex-col gap-6 w-full max-w-xl mx-auto">
                 <p className="text-sm font-bold tracking-widest text-blue-500 uppercase mb-2 text-center">Identidad Visual</p>
@@ -299,7 +298,6 @@ export default function Wizard() {
                 <AnimatePresence>
                   {!data.noLogo && (
                     <motion.div initial={{opacity:0, height:0}} animate={{opacity:1, height:'auto'}} exit={{opacity:0, height:0}} className="flex flex-col items-center w-full mb-4">
-                      {/* Animación y Subidor unificados en una sola "Caja" */}
                       <div className="w-full bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden">
                         <div className="w-full bg-slate-50 border-b border-slate-200 h-14 flex items-center justify-center relative overflow-hidden">
                           <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/50 to-transparent animate-[shimmer_2s_infinite]" />
