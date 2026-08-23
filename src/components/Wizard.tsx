@@ -1,6 +1,6 @@
 import { useState, useMemo, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowRight, ArrowLeft, PartyPopper, Sparkles, LayoutTemplate, Image as ImageIcon, MapPin, Phone, AtSign, Monitor, Smartphone, Plus, Trash2, Star, Type, BarChart3, CalendarHeart, Award, HeartHandshake, BoxSelect, CreditCard, Link as LinkIcon, Info, Loader2 } from 'lucide-react';
+import { ArrowRight, ArrowLeft, PartyPopper, Sparkles, LayoutTemplate, Image as ImageIcon, MapPin, Phone, AtSign, Monitor, Smartphone, Plus, Trash2, Star, Type, BarChart3, CalendarHeart, Award, HeartHandshake, BoxSelect, CreditCard, Link as LinkIcon, Info, Loader2, ShieldCheck } from 'lucide-react';
 import type { OnboardingData } from '../types';
 import ImageUpload from './ImageUpload';
 import AddressAutocomplete from './AddressAutocomplete'; 
@@ -53,13 +53,10 @@ export default function Wizard() {
   const [currentStepIndex, setCurrentStepIndex] = useState(0);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // --- SCROLL TO TOP ON STEP CHANGE ---
-  // Truco maestro para celulares: cuando cambiás de paso, la página vuelve a subir al principio.
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }, [currentStepIndex]);
 
-  // --- MOTOR DE RUTAS ---
   const steps = useMemo(() => {
     const s = [{ id: 'WELCOME' }, { id: 'ML_USER' }, { id: 'TEMPLATE' }, { id: 'LOGO' }, { id: 'COLORS' }, { id: 'TYPOGRAPHY' }, { id: 'BACKGROUND' }, { id: 'HERO_TITLE' }, { id: 'HERO_DESKTOP' }];
     if (data.wantsMobileHero) s.push({ id: 'HERO_MOBILE' });
@@ -75,7 +72,7 @@ export default function Wizard() {
       s.push({ id: 'SERVICES_DEF' }, { id: 'STRENGTHS' });
     }
     s.push({ id: 'REVIEWS_NEW' }, { id: 'CONTACT_NEW' }, { id: 'DOMAIN_TYPE' });
-    if (data.domainType !== '') s.push({ id: 'DOMAIN_OPTIONS' });
+    if (data.domainType !== '' && data.domainType !== 'GRATIS') s.push({ id: 'DOMAIN_OPTIONS' });
     s.push({ id: 'END' });
     return s;
   }, [data.templateSelected, data.wantsMobileHero, data.categories, data.offersEvents, data.domainType]);
@@ -98,7 +95,6 @@ export default function Wizard() {
   const updateDomainOption = (index: number, val: string) => { const n = [...data.domainOptionsList]; n[index] = val; setData(prev => ({ ...prev, domainOptionsList: n })); };
   const updateT2MaterialImage = (index: number, val: string) => { const n = [...data.t2MaterialsImages]; n[index] = val; setData(prev => ({ ...prev, t2MaterialsImages: n })); };
 
-  // --- VALIDACIÓN ESTRICTA ---
   const isNextDisabled = () => {
     const step = currentStep.id;
 
@@ -112,7 +108,6 @@ export default function Wizard() {
     if (step === 'HERO_DESKTOP') return data.heroImage === '';
     if (step === 'HERO_MOBILE') return data.heroImageMobile === '';
 
-    // T1
     if (step === 'T1_ABOUT') return data.aboutImage === '' || data.aboutText.trim() === '';
     if (step === 'T1_STATS') return data.stats.some(s => s.label.trim() === '' || s.value.trim() === '');
     if (step === 'T1_EVENTS') {
@@ -121,12 +116,10 @@ export default function Wizard() {
       return false;
     }
 
-    // T2
     if (step === 'T2_STORY') return data.t2StoryText.trim() === '' || data.t2StoryImage === '';
     if (step === 'T2_MATERIALS') return data.t2MaterialsText.trim() === '' || !data.t2MaterialsImages.some(img => img !== '');
     if (step === 'T2_STRENGTHS') return data.t2Strengths.some(s => s.trim() === '');
 
-    // Categorías y Productos
     if (step === 'CATEGORIES_DEF') {
       const validCats = data.categories.filter(c => c.name.trim() !== '');
       return validCats.length < 3 || validCats.length > 5;
@@ -137,14 +130,12 @@ export default function Wizard() {
     }
     if (step === 'FEATURED') return data.featuredIds.length === 0;
 
-    // T3 y T4
     if (step === 'SERVICES_DEF') {
       const validServices = data.services.filter(s => s.title.trim() !== '' && s.description.trim() !== '');
-      return validServices.length < 6; // OBLIGATORIO 6 SERVICIOS
+      return validServices.length < 6;
     }
     if (step === 'STRENGTHS') return data.strengths.trim() === '';
 
-    // Finales
     if (step === 'REVIEWS_NEW') {
       if (data.useGoogleMapsReviews) return data.googleMapsLink.trim() === '';
       return data.reviewsList.some(r => r.name.trim() === '' || r.text.trim() === '');
@@ -198,19 +189,21 @@ export default function Wizard() {
           resenasManuales: data.useGoogleMapsReviews ? null : data.reviewsList
         },
         contacto: { whatsapp: data.whatsapp, redSocial: data.socialLinks, direccionMapsLink: data.address || 'No tiene local' },
-        dominio: { tipo: data.domainType, opcionesNombres: data.domainOptionsList }
+        dominio: { tipo: data.domainType, opcionesNombres: data.domainType !== 'GRATIS' ? data.domainOptionsList : [] }
       };
 
       const documentId = data.mercadoLibreUser.replace(/[^a-zA-Z0-9]/g, '_');
       await setDoc(doc(db, "proyectos", documentId), cleanData);
       
-      if (data.domainType === 'Profesional') {
-        const confirmacion = window.confirm("¡Toda tu información se guardó correctamente! 🎉\n\nAl hacer clic en Aceptar, vas a ser redirigido a MercadoPago para abonar los $15.000 de la gestión de tu dominio .com");
-        if (confirmacion) {
-          window.location.href = "https://mpago.la/1iLbwZF"; 
-        }
+      // RUTEO A MERCADO PAGO SEGÚN LA OPCIÓN ELEGIDA
+      if (data.domainType === 'COM') {
+        const confirmacion = window.confirm("¡Toda tu información se guardó correctamente! 🎉\n\nVas a ser redirigido a MercadoPago para abonar los $30.000 de tu dominio .COM");
+        if (confirmacion) window.location.href = "https://mpago.la/1WttGMk"; 
+      } else if (data.domainType === 'ONLINE') {
+        const confirmacion = window.confirm("¡Toda tu información se guardó correctamente! 🎉\n\nVas a ser redirigido a MercadoPago para abonar los $20.000 de tu dominio .ONLINE / .STORE");
+        if (confirmacion) window.location.href = "https://mpago.la/1iLbwZF"; 
       } else {
-        alert("¡Éxito! 🎉\n\nTu formulario fue enviado a nuestro equipo. Nos pondremos a trabajar pronto.");
+        alert("¡Éxito! 🎉\n\nTu formulario fue enviado a nuestro equipo. Nos pondremos a trabajar en tu versión gratuita pronto.");
       }
 
     } catch (error) {
@@ -223,10 +216,8 @@ export default function Wizard() {
   const slideVariants = { enter: { y: 30, opacity: 0 }, center: { y: 0, opacity: 1 }, exit: { y: -30, opacity: 0 } };
 
   return (
-    // FIX PRINCIPAL: Sacamos el overflow-hidden. Ahora la página entera scrollea.
     <div className="min-h-screen bg-[#F8FAFC] text-slate-800 font-sans flex flex-col items-center pt-20 md:pt-24 px-4 relative selection:bg-blue-200">
       
-      {/* NAVEGACIÓN SUPERIOR FIJA */}
       <div className="fixed top-0 left-0 w-full flex flex-col items-center z-50 bg-white/90 backdrop-blur-md border-b border-slate-200 shadow-sm pt-safe-top pt-4 pb-3 px-4 md:px-12">
         <div className="w-full max-w-5xl flex items-center justify-between">
           <img src="/assets/Logo.webp" alt="Logo" className="h-7 md:h-10 w-auto opacity-90" />
@@ -241,13 +232,10 @@ export default function Wizard() {
         </div>
       </div>
 
-      {/* CONTENEDOR PRINCIPAL */}
-      {/* FIX: Ahora es un flex-col normal que crece hacia abajo, sin absolute ni height fijos */}
       <div className="w-full max-w-4xl flex flex-col pb-36 md:pb-40 mt-6 md:mt-8">
         <AnimatePresence mode="wait">
           <motion.div key={currentStep.id} variants={slideVariants} initial="enter" animate="center" exit="exit" transition={{ duration: 0.4, ease: "easeOut" }} className="w-full flex flex-col justify-center">
             
-            {/* === WELCOME === */}
             {currentStep.id === 'WELCOME' && (
               <div className="flex flex-col items-center text-center gap-4 md:gap-6 py-10">
                 <motion.div initial={{ scale: 0, rotate: -45 }} animate={{ scale: 1, rotate: 0 }} transition={{ type: "spring", bounce: 0.5, duration: 0.8 }} className="w-24 h-24 md:w-28 md:h-28 bg-white text-blue-600 rounded-full flex items-center justify-center mb-2 shadow-xl shadow-blue-100/50"><PartyPopper size={48} className="md:w-14 md:h-14" /></motion.div>
@@ -274,7 +262,6 @@ export default function Wizard() {
               </div>
             )}
 
-            {/* FIX: Eliminados los max-h y los overflow-y-auto de todas las pantallas */}
             {currentStep.id === 'TEMPLATE' && (
               <div className="flex flex-col gap-4 md:gap-6 w-full max-w-4xl mx-auto">
                 <div className="flex flex-col text-center px-2">
@@ -799,19 +786,107 @@ export default function Wizard() {
             )}
 
             {currentStep.id === 'DOMAIN_TYPE' && (
-              <div className="flex flex-col gap-4 md:gap-6 max-w-2xl mx-auto w-full text-center px-2 md:px-0 py-4">
-                <p className="text-xs md:text-sm font-bold tracking-widest text-blue-500 uppercase mb-0">Despliegue</p>
-                <h2 className="text-3xl md:text-4xl font-black leading-tight text-slate-900">¿Cómo querés que sea tu link web?</h2>
-                <div className="flex flex-col gap-4 md:gap-5 mt-2 md:mt-6 text-left">
-                  <button onClick={() => handleInputChange('domainType', 'Profesional')} className={`w-full text-left p-5 md:p-8 rounded-2xl md:rounded-[2rem] border-[3px] md:border-4 transition-all flex items-start gap-4 md:gap-6 ${data.domainType === 'Profesional' ? 'border-blue-600 bg-white shadow-xl shadow-blue-600/20 md:scale-[1.02]' : 'border-white bg-white hover:border-blue-200 hover:shadow-md'}`}>
-                    <div className={`w-8 h-8 md:w-10 md:h-10 mt-1 rounded-full border-[3px] md:border-[4px] flex shrink-0 items-center justify-center ${data.domainType === 'Profesional' ? 'border-blue-600 bg-blue-600' : 'border-slate-300'}`}>{data.domainType === 'Profesional' && <div className="w-3 h-3 md:w-4 md:h-4 bg-white rounded-full" />}</div>
-                    <div><strong className="block text-xl md:text-3xl font-black text-slate-800 mb-1 md:mb-3">A) Dominio Profesional .com</strong><span className="text-sm md:text-xl text-slate-500 block leading-relaxed">Ej: www.tunegocio.com.<br/>Tiene un costo extra de $15.000 por la gestión y el primer año. <strong className="text-slate-700">(Renovación anual a cargo del cliente).</strong></span></div>
-                  </button>
-                  <button onClick={() => handleInputChange('domainType', 'Gratuito')} className={`w-full text-left p-5 md:p-8 rounded-2xl md:rounded-[2rem] border-[3px] md:border-4 transition-all flex items-start gap-4 md:gap-6 ${data.domainType === 'Gratuito' ? 'border-blue-600 bg-white shadow-xl shadow-blue-600/20 md:scale-[1.02]' : 'border-white bg-white hover:border-blue-200 hover:shadow-md'}`}>
-                    <div className={`w-8 h-8 md:w-10 md:h-10 mt-1 rounded-full border-[3px] md:border-[4px] flex shrink-0 items-center justify-center ${data.domainType === 'Gratuito' ? 'border-blue-600 bg-blue-600' : 'border-slate-300'}`}>{data.domainType === 'Gratuito' && <div className="w-3 h-3 md:w-4 md:h-4 bg-white rounded-full" />}</div>
-                    <div><strong className="block text-xl md:text-3xl font-black text-slate-800 mb-1 md:mb-3">B) Versión Gratuita</strong><span className="text-sm md:text-xl text-slate-500 block leading-relaxed">Ej: tunegocio.vercel.app.<br/>Totalmente funcional, sin costo extra y para siempre.</span></div>
-                  </button>
+              <div className="flex flex-col gap-6 max-w-5xl mx-auto w-full text-center px-2 md:px-0 py-4">
+                <div className="mb-2">
+                  <p className="text-xs md:text-sm font-bold tracking-widest text-blue-500 uppercase mb-1">Despliegue Profesional</p>
+                  <h2 className="text-3xl md:text-4xl font-black leading-tight text-slate-900 mb-3">Tu identidad en internet</h2>
+                  <p className="text-sm md:text-lg text-slate-500 max-w-2xl mx-auto">Seleccioná cómo querés que te encuentren tus clientes. Un dominio profesional aumenta la confianza y las ventas.</p>
                 </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-5 md:gap-6 text-left">
+                  
+                  {/* TARJETA 1: .COM (Señuelo / Ancla - Más caro, diseño destacado) */}
+                  <button 
+                    onClick={() => handleInputChange('domainType', 'COM')} 
+                    className={`relative w-full flex flex-col p-6 md:p-8 rounded-3xl border-[3px] transition-all duration-300 md:order-1 ${
+                      data.domainType === 'COM' 
+                        ? 'border-violet-600 bg-white shadow-2xl shadow-violet-600/20 md:-translate-y-2' 
+                        : 'border-slate-200 bg-white hover:border-violet-300 hover:shadow-xl'
+                    }`}
+                  >
+                    <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-gradient-to-r from-violet-600 to-fuchsia-600 text-white px-4 py-1 rounded-full text-xs font-black tracking-widest flex items-center gap-1 shadow-lg">
+                      🔥 MÁS ELEGIDO
+                    </div>
+                    
+                    <div className="flex justify-between items-start w-full mb-4 mt-2">
+                      <div className="flex items-center gap-3">
+                        <div className={`w-6 h-6 rounded-full border-[3px] flex shrink-0 items-center justify-center ${data.domainType === 'COM' ? 'border-violet-600 bg-violet-600' : 'border-slate-300'}`}>
+                          {data.domainType === 'COM' && <div className="w-2.5 h-2.5 bg-white rounded-full" />}
+                        </div>
+                        <h3 className="text-2xl font-black text-slate-800">.COM</h3>
+                      </div>
+                    </div>
+                    
+                    <div className="mb-4">
+                      <span className="text-3xl font-black text-slate-900">$30.000</span>
+                      <span className="text-sm text-slate-500 ml-1">/1er año</span>
+                    </div>
+
+                    <p className="text-sm text-slate-600 leading-relaxed">La opción de máxima autoridad global. Ideal para empresas que buscan proyectar confianza absoluta (Ej: www.tunegocio.com).</p>
+                  </button>
+
+                  {/* TARJETA 2: .ONLINE / .STORE (Mejor valor, diseño atractivo) */}
+                  <button 
+                    onClick={() => handleInputChange('domainType', 'ONLINE')} 
+                    className={`relative w-full flex flex-col p-6 md:p-8 rounded-3xl border-[3px] transition-all duration-300 md:order-2 ${
+                      data.domainType === 'ONLINE' 
+                        ? 'border-blue-600 bg-white shadow-2xl shadow-blue-600/20 md:-translate-y-2' 
+                        : 'border-slate-200 bg-white hover:border-blue-300 hover:shadow-xl'
+                    }`}
+                  >
+                    <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-blue-600 text-white px-4 py-1 rounded-full text-xs font-black tracking-widest flex items-center gap-1 shadow-lg">
+                      💡 MEJOR PRECIO
+                    </div>
+
+                    <div className="flex justify-between items-start w-full mb-4 mt-2">
+                      <div className="flex items-center gap-3">
+                        <div className={`w-6 h-6 rounded-full border-[3px] flex shrink-0 items-center justify-center ${data.domainType === 'ONLINE' ? 'border-blue-600 bg-blue-600' : 'border-slate-300'}`}>
+                          {data.domainType === 'ONLINE' && <div className="w-2.5 h-2.5 bg-white rounded-full" />}
+                        </div>
+                        <h3 className="text-2xl font-black text-slate-800 line-clamp-1">.ONLINE</h3>
+                      </div>
+                    </div>
+                    
+                    <div className="mb-4">
+                      <span className="text-3xl font-black text-slate-900">$20.000</span>
+                      <span className="text-sm text-slate-500 ml-1">/1er año</span>
+                    </div>
+
+                    <p className="text-sm text-slate-600 leading-relaxed">Excelente alternativa moderna. Perfecta para tiendas virtuales o servicios digitales que buscan destacarse a un precio inteligente.</p>
+                  </button>
+
+                  {/* TARJETA 3: GRATIS (Opción neutra, diseño sutil) */}
+                  <button 
+                    onClick={() => handleInputChange('domainType', 'GRATIS')} 
+                    className={`relative w-full flex flex-col p-6 md:p-8 rounded-3xl border-2 transition-all duration-300 md:order-3 ${
+                      data.domainType === 'GRATIS' 
+                        ? 'border-slate-400 bg-slate-50 shadow-inner' 
+                        : 'border-slate-200 bg-slate-50/50 hover:bg-slate-50 hover:border-slate-300'
+                    }`}
+                  >
+                    <div className="flex justify-between items-start w-full mb-4 mt-2">
+                      <div className="flex items-center gap-3">
+                        <div className={`w-6 h-6 rounded-full border-[3px] flex shrink-0 items-center justify-center ${data.domainType === 'GRATIS' ? 'border-slate-500 bg-slate-500' : 'border-slate-300'}`}>
+                          {data.domainType === 'GRATIS' && <div className="w-2.5 h-2.5 bg-white rounded-full" />}
+                        </div>
+                        <h3 className="text-xl font-bold text-slate-700">Subdominio</h3>
+                      </div>
+                    </div>
+                    
+                    <div className="mb-4">
+                      <span className="text-3xl font-bold text-slate-600">Gratis</span>
+                    </div>
+
+                    <p className="text-sm text-slate-500 leading-relaxed">Tu web quedará alojada en nuestros servidores usando una extensión estándar (Ej: tunegocio.vercel.app). 100% funcional.</p>
+                  </button>
+
+                </div>
+
+                <div className="flex items-center justify-center gap-2 mt-2">
+                  <ShieldCheck className="w-4 h-4 text-green-600" />
+                  <p className="text-xs text-slate-500 font-medium">El pago del dominio se realiza de forma 100% segura a través de Mercado Pago al finalizar el formulario.</p>
+                </div>
+
               </div>
             )}
 
@@ -847,7 +922,7 @@ export default function Wizard() {
                 <h2 className="text-4xl md:text-6xl font-black text-slate-900 tracking-tight mb-4 md:mb-6">¡Llegamos al final! 🎉</h2>
                 <p className="text-lg md:text-2xl text-slate-500 leading-relaxed mb-8 md:mb-10">Tenemos todo el material necesario para empezar a armar tu página web. Al hacer clic abajo, toda la información se enviará de forma segura a nuestro equipo.</p>
                 
-                {data.domainType === 'Profesional' ? (
+                {data.domainType === 'COM' || data.domainType === 'ONLINE' ? (
                   <button onClick={handleSubmit} disabled={isSubmitting} className="w-full md:w-auto px-8 md:px-12 py-5 md:py-6 bg-green-600 text-white rounded-full font-black text-lg md:text-2xl flex items-center justify-center gap-3 md:gap-4 hover:bg-green-700 hover:scale-105 active:scale-95 transition-all shadow-xl shadow-green-600/40 disabled:opacity-50 disabled:hover:scale-100">
                     {isSubmitting ? 'Procesando...' : <><CreditCard className="w-6 h-6 md:w-7 md:h-7" /> Abonar Dominio y Enviar</>}
                   </button>
