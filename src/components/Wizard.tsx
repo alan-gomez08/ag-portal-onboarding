@@ -1,6 +1,6 @@
 import { useState, useMemo, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowRight, ArrowLeft, PartyPopper, Sparkles, Image as ImageIcon, MapPin, Phone, AtSign, Monitor, Smartphone, Plus, Trash2, Star, Type, BarChart3, CalendarHeart, Award, HeartHandshake, CreditCard, Link as LinkIcon, Info, Loader2, ShieldCheck, ExternalLink, ShoppingCart, UploadCloud, CheckCircle2, Zap, TrendingUp, X, HelpCircle } from 'lucide-react';
+import { ArrowRight, ArrowLeft, PartyPopper, Sparkles, Image as ImageIcon, MapPin, Phone, AtSign, Monitor, Smartphone, Plus, Trash2, Star, Type, BarChart3, CalendarHeart, Award, HeartHandshake, CreditCard, Link as LinkIcon, Info, Loader2, ShieldCheck, ExternalLink, ShoppingCart, UploadCloud, CheckCircle2, Zap, TrendingUp, X, HelpCircle, Briefcase, Globe } from 'lucide-react';
 import type { OnboardingData } from '../types';
 import ImageUpload from './ImageUpload';
 import AddressAutocomplete from './AddressAutocomplete'; 
@@ -143,7 +143,6 @@ export default function Wizard() {
   const updateT2MaterialImage = (index: number, val: string) => { const n = [...data.t2MaterialsImages]; n[index] = val; setData(prev => ({ ...prev, t2MaterialsImages: n })); };
   const updateBulkFeatured = (index: number, val: string) => { const n = [...data.t1BulkFeatured]; n[index] = val; setData(prev => ({ ...prev, t1BulkFeatured: n })); };
 
-  // Gestión de FAQs T3
   const updateFaq = (index: number, field: 'question' | 'answer', value: string) => {
     const n = [...data.t3Faqs];
     n[index][field] = value;
@@ -156,16 +155,11 @@ export default function Wizard() {
     setData(prev => ({ ...prev, t3Faqs: prev.t3Faqs.filter((_, i) => i !== index) }));
   };
 
-  // CALCULO DEL CARRITO INTELIGENTE
   const calculateTotal = () => {
     let total = 0;
     if (data.domainType === 'COM') total += 30000;
-    if (data.domainType === 'ONLINE') total += 20000;
-    
+    if (data.domainType === 'COMAR') total += 15000;
     if (data.templateSelected === 'T1' && data.t1MenuMode === 'ecommerce') total += 30000;
-    if (data.templateSelected === 'T2' && data.t2Dynamic === 'productos' && data.t2ProductMode === 'vitrina') total += 30000;
-    if (data.templateSelected === 'T2' && data.t2Dynamic === 'servicios' && data.t2ServicePricing === 'con_precios') total += 30000;
-    
     return total;
   };
 
@@ -174,8 +168,8 @@ export default function Wizard() {
       ...prev,
       domainType: prev.domainType !== '' ? 'GRATIS' : prev.domainType,
       t1MenuMode: prev.t1MenuMode !== '' ? 'abierto' : prev.t1MenuMode,
-      t2ProductMode: prev.t2ProductMode !== '' ? 'consulta' : prev.t2ProductMode,
-      t2ServicePricing: prev.t2ServicePricing !== '' ? 'sin_precios' : prev.t2ServicePricing
+      t2ServicePricing: prev.t2ServicePricing !== '' ? 'sin_precios' : prev.t2ServicePricing,
+      t2ProductMode: prev.t2ProductMode !== '' ? 'consulta' : prev.t2ProductMode
     }));
   };
 
@@ -192,20 +186,15 @@ export default function Wizard() {
     if (step === 'HERO_DESKTOP') return data.heroImage === '';
     if (step === 'HERO_MOBILE') return data.heroImageMobile === '';
 
-    // T1, T3, T4
     if (step === 'T1_ABOUT') return data.aboutImage === '' || data.aboutText.trim() === '';
-    
     if (step === 'T1_UPSELL') return data.t1MenuMode === '';
     if (step === 'T1_BULK_UPLOAD') return data.t1BulkFileUrl.trim() === '';
     if (step === 'T1_BULK_FEATURED') return data.t1BulkFeatured.some(n => n.trim() === '');
-    
-    // T1 - Validación Logística
     if (step === 'T1_LOGISTICS') {
       if (data.t1DeliveryMethod === '') return true;
       if ((data.t1DeliveryMethod === 'delivery' || data.t1DeliveryMethod === 'ambos') && data.t1DeliveryZones.trim() === '') return true;
       return false;
     }
-
     if (step === 'T1_STATS') return data.stats.some(s => s.label.trim() === '' || s.value.trim() === '');
     if (step === 'T1_EVENTS') {
       if (data.offersEvents === null) return true;
@@ -213,7 +202,6 @@ export default function Wizard() {
       return false;
     }
 
-    // T2
     if (step === 'T2_DYNAMIC') return data.t2Dynamic === '';
     if (step === 'T2_UPSELL_PROD') return data.t2ProductMode === '';
     if (step === 'T2_AGENDA') return data.t2AgendaMode === '' || (data.t2AgendaMode === 'link' && data.t2AgendaLink.trim() === '');
@@ -222,7 +210,6 @@ export default function Wizard() {
     if (step === 'T2_MATERIALS') return data.t2MaterialsText.trim() === '' || !data.t2MaterialsImages.some(img => img !== '');
     if (step === 'T2_STRENGTHS') return data.t2Strengths.some(s => s.trim() === '');
 
-    // Categorias & Portfolio (T1 y T2)
     if (step === 'CATEGORIES_DEF') {
       const validCats = data.categories.filter(c => c.name.trim() !== '');
       return validCats.length < 3 || validCats.length > 5;
@@ -230,8 +217,6 @@ export default function Wizard() {
     if (step?.startsWith('CAT_UPLOAD_')) {
       const catIndex = currentStep.catIndex!;
       const items = data.categories[catIndex].items;
-      
-      // EXIGIR PRECIO EN LAS OPCIONES DE PAGO
       if (data.t1MenuMode === 'ecommerce' || data.t2ProductMode === 'vitrina' || data.t2ServicePricing === 'con_precios') {
         const hasImgWithoutPrice = items.some(item => item.image !== '' && item.price.trim() === '');
         if (hasImgWithoutPrice) return true;
@@ -240,21 +225,18 @@ export default function Wizard() {
     }
     if (step === 'FEATURED') return data.featuredIds.length === 0;
 
-    // Servicios
     if (step === 'SERVICES_DEF') {
       const validServices = data.services.filter(s => s.title.trim() !== '' && s.description.trim() !== '');
       return validServices.length < 6;
     }
     if (step === 'STRENGTHS') return data.strengths.trim() === '';
 
-    // T3 - FAQs
     if (step === 'T3_FAQS') {
       const validFaqs = data.t3Faqs.filter(f => f.question.trim() !== '' && f.answer.trim() !== '');
       const hasIncomplete = data.t3Faqs.some(f => (f.question.trim() !== '' && f.answer.trim() === '') || (f.question.trim() === '' && f.answer.trim() !== ''));
       return validFaqs.length === 0 || hasIncomplete;
     }
 
-    // Finales
     if (step === 'REVIEWS_NEW') {
       if (data.useGoogleMapsReviews) return data.googleMapsLink.trim() === '';
       return data.reviewsList.some(r => r.name.trim() === '' || r.text.trim() === '');
@@ -340,25 +322,16 @@ export default function Wizard() {
       const totalToPay = calculateTotal();
 
       if (totalToPay > 0) {
-        
-        // --- LÓGICA INTELIGENTE DE LINKS DE MERCADO PAGO ---
         let paymentLink = "";
-        
         const isT1Upsell = data.templateSelected === 'T1' && data.t1MenuMode === 'ecommerce';
-        const isT2Upsell = data.templateSelected === 'T2' && (data.t2ProductMode === 'vitrina' || data.t2ServicePricing === 'con_precios');
 
         if (isT1Upsell) {
-            if (data.domainType === 'COM') paymentLink = "https://mpago.la/2FttjFq"; // 60k
-            else if (data.domainType === 'ONLINE') paymentLink = "https://mpago.la/2xfJC7f"; // 50k
-            else paymentLink = "https://mpago.la/2yNRhjy"; // 30k
-        } else if (isT2Upsell) {
-            if (data.domainType === 'COM') paymentLink = "https://mpago.la/21JKaF7"; // 60k
-            else if (data.domainType === 'ONLINE') paymentLink = "https://mpago.la/21JoSgV"; // 50k
-            else paymentLink = "https://mpago.la/2tUxTwD"; // 30k
+            if (data.domainType === 'COM') paymentLink = "https://mpago.la/2FttjFq"; 
+            else if (data.domainType === 'COMAR') paymentLink = "https://mpago.la/2xfJC7f"; 
+            else paymentLink = "https://mpago.la/2yNRhjy"; 
         } else {
-            // T1/T2 sin upsells o Clientes T3/T4
-            if (data.domainType === 'COM') paymentLink = "https://mpago.la/1WttGMk"; // 30k
-            else if (data.domainType === 'ONLINE') paymentLink = "https://mpago.la/1iLbwZF"; // 20k
+            if (data.domainType === 'COM') paymentLink = "https://mpago.la/1WttGMk"; 
+            else if (data.domainType === 'COMAR') paymentLink = "https://mpago.la/1iLbwZF"; 
         }
 
         if (paymentLink !== "") {
@@ -684,7 +657,7 @@ export default function Wizard() {
                     </div>
                     <div className="w-full h-[1px] bg-slate-100 mb-6" />
                     
-                    <ul className="flex flex-col gap-4 flex-1">
+                    <ul className="flex flex-col gap-4 flex-grow">
                       <li className="flex items-start gap-3"><CheckCircle2 className="w-5 h-5 text-green-500 shrink-0 mt-0.5"/><span className="text-slate-600 text-sm md:text-base leading-relaxed"><strong>Exhibición visual del catálogo:</strong> Presentación estética de tu línea de productos (sin visualización tarifaria).</span></li>
                       <li className="flex items-start gap-3"><CheckCircle2 className="w-5 h-5 text-green-500 shrink-0 mt-0.5"/><span className="text-slate-600 text-sm md:text-base leading-relaxed"><strong>Canal de consulta directa:</strong> Botones de contacto individual enlazados a tu WhatsApp corporativo.</span></li>
                       <li className="flex items-start gap-3"><CheckCircle2 className="w-5 h-5 text-green-500 shrink-0 mt-0.5"/><span className="text-slate-600 text-sm md:text-base leading-relaxed"><strong>Identidad corporativa:</strong> Diseño profesional adaptado a los colores y lineamientos de tu marca.</span></li>
@@ -710,7 +683,7 @@ export default function Wizard() {
                     </div>
                     <div className="w-full h-[1px] bg-slate-100 mb-6" />
                     
-                    <ul className="flex flex-col gap-4 flex-1">
+                    <ul className="flex flex-col gap-4 flex-grow">
                       <li className="flex items-start gap-3"><CheckCircle2 className="w-5 h-5 text-emerald-500 shrink-0 mt-0.5"/><span className="text-slate-600 text-sm md:text-base leading-relaxed"><strong>Motor de carrito integrado:</strong> Permite al usuario sumar múltiples productos y gestionar su propia orden sin fricción.</span></li>
                       <li className="flex items-start gap-3"><CheckCircle2 className="w-5 h-5 text-emerald-500 shrink-0 mt-0.5"/><span className="text-slate-600 text-sm md:text-base leading-relaxed"><strong>Transparencia transaccional:</strong> Precios a la vista para cualificar prospectos y reducir drásticamente las consultas.</span></li>
                       <li className="flex items-start gap-3"><CheckCircle2 className="w-5 h-5 text-emerald-500 shrink-0 mt-0.5"/><span className="text-slate-600 text-sm md:text-base leading-relaxed"><strong>Validación logística (Geofencing):</strong> Delimitación de zonas de cobertura para garantizar que solo ingresen pedidos válidos.</span></li>
@@ -773,7 +746,7 @@ export default function Wizard() {
                     </div>
                     <div className="w-full h-[1px] bg-slate-100 mb-6" />
                     
-                    <ul className="flex flex-col gap-4 flex-1">
+                    <ul className="flex flex-col gap-4 flex-grow">
                       <li className="flex items-start gap-3"><CheckCircle2 className="w-5 h-5 text-green-500 shrink-0 mt-0.5"/><span className="text-slate-600 text-sm md:text-base leading-relaxed"><strong>Presentación de portafolio:</strong> Galería estética y estructurada de tus productos (sin listado de precios).</span></li>
                       <li className="flex items-start gap-3"><CheckCircle2 className="w-5 h-5 text-green-500 shrink-0 mt-0.5"/><span className="text-slate-600 text-sm md:text-base leading-relaxed"><strong>Derivación a WhatsApp:</strong> Canal directo para la solicitud de presupuestos y atención personalizada.</span></li>
                       <li className="flex items-start gap-3"><CheckCircle2 className="w-5 h-5 text-green-500 shrink-0 mt-0.5"/><span className="text-slate-600 text-sm md:text-base leading-relaxed"><strong>Presencia digital limpia:</strong> Estructura que fortalece la autoridad y la imagen de tu marca en internet.</span></li>
@@ -781,7 +754,7 @@ export default function Wizard() {
                     </ul>
                   </div>
 
-                  {/* CARD 2: PREMIUM */}
+                  {/* CARD 2: PREMIUM (NOW FREE) */}
                   <div onClick={() => handleInputChange('t2ProductMode', 'vitrina')} className={`relative h-full flex flex-col p-6 md:p-8 rounded-[2rem] border-2 transition-all duration-300 cursor-pointer ${data.t2ProductMode === 'vitrina' ? 'border-emerald-500 bg-emerald-50/10 shadow-2xl ring-4 ring-emerald-500/20 scale-[1.02]' : 'border-slate-200 bg-white hover:border-emerald-300 hover:shadow-xl'}`}>
                     <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-gradient-to-r from-emerald-500 to-teal-500 text-white px-5 py-1.5 rounded-full text-xs font-black tracking-widest shadow-lg flex items-center gap-2 w-max">
                       <Zap size={14} className="fill-white"/> MÁXIMA CONVERSIÓN
@@ -795,18 +768,19 @@ export default function Wizard() {
                     </div>
                     <h3 className="text-2xl md:text-3xl font-black text-slate-800 mb-2">Catálogo Interactivo</h3>
                     <div className="flex items-baseline gap-1 mb-6">
-                      <span className="text-3xl md:text-4xl font-black text-emerald-600">+$30.000</span><span className="text-emerald-600/70 font-bold text-sm">ARS</span>
+                      <span className="text-3xl md:text-4xl font-black text-emerald-600">Incluido</span>
+                      <span className="text-emerald-600/70 font-bold text-sm ml-2">(Bonificado)</span>
                     </div>
                     <div className="w-full h-[1px] bg-slate-100 mb-6" />
                     
-                    <ul className="flex flex-col gap-4 flex-1">
+                    <ul className="flex flex-col gap-4 flex-grow">
                       <li className="flex items-start gap-3"><CheckCircle2 className="w-5 h-5 text-emerald-500 shrink-0 mt-0.5"/><span className="text-slate-600 text-sm md:text-base leading-relaxed"><strong>Cualificación por precio:</strong> Listado transparente de tarifas que actúa como filtro de curiosos.</span></li>
                       <li className="flex items-start gap-3"><CheckCircle2 className="w-5 h-5 text-emerald-500 shrink-0 mt-0.5"/><span className="text-slate-600 text-sm md:text-base leading-relaxed"><strong>Cierre de ventas sin fricción:</strong> El usuario selecciona el producto y es derivado con intención confirmada.</span></li>
                       <li className="flex items-start gap-3"><CheckCircle2 className="w-5 h-5 text-emerald-500 shrink-0 mt-0.5"/><span className="text-slate-600 text-sm md:text-base leading-relaxed"><strong>Posicionamiento de autoridad:</strong> Eleva instantáneamente el valor percibido de tu marca.</span></li>
                       <li className="flex items-start gap-3"><CheckCircle2 className="w-5 h-5 text-emerald-500 shrink-0 mt-0.5"/><span className="text-slate-600 text-sm md:text-base leading-relaxed"><strong>Optimización de tiempo:</strong> Eliminación del desgaste por redacción de presupuestos repetitivos.</span></li>
                     </ul>
                     <div className="mt-6 pt-4 border-t border-slate-100">
-                      <p className="text-xs text-slate-400 leading-tight">Mantenimiento a demanda: $15.000 ARS por cada solicitud futura de actualización masiva de precios o imágenes.</p>
+                      <p className="text-xs text-slate-500 leading-tight"><strong>Mantenimiento:</strong> Cada actualización (precio, imágenes, textos o servicio, máx 5 modificaciones) se cobra $15.000 ARS (aprox 10 USD). En caso de ser más, se amoldará un precio accesible según dificultad y tiempo.</p>
                     </div>
                   </div>
 
@@ -859,7 +833,7 @@ export default function Wizard() {
                     </div>
                     <div className="w-full h-[1px] bg-slate-100 mb-6" />
                     
-                    <ul className="flex flex-col gap-4 flex-1">
+                    <ul className="flex flex-col gap-4 flex-grow">
                       <li className="flex items-start gap-3"><CheckCircle2 className="w-5 h-5 text-green-500 shrink-0 mt-0.5"/><span className="text-slate-600 text-sm md:text-base leading-relaxed"><strong>Presentación de portafolio:</strong> Galería estética de tus servicios profesionales (sin listado de precios).</span></li>
                       <li className="flex items-start gap-3"><CheckCircle2 className="w-5 h-5 text-green-500 shrink-0 mt-0.5"/><span className="text-slate-600 text-sm md:text-base leading-relaxed"><strong>Derivación a WhatsApp:</strong> Canal directo para la solicitud de turnos y atención personalizada.</span></li>
                       <li className="flex items-start gap-3"><CheckCircle2 className="w-5 h-5 text-green-500 shrink-0 mt-0.5"/><span className="text-slate-600 text-sm md:text-base leading-relaxed"><strong>Presencia digital limpia:</strong> Estructura que fortalece la autoridad y la imagen de tu marca en internet.</span></li>
@@ -881,18 +855,19 @@ export default function Wizard() {
                     </div>
                     <h3 className="text-2xl md:text-3xl font-black text-slate-800 mb-2">Catálogo Interactivo</h3>
                     <div className="flex items-baseline gap-1 mb-6">
-                      <span className="text-3xl md:text-4xl font-black text-emerald-600">+$30.000</span><span className="text-emerald-600/70 font-bold text-sm">ARS</span>
+                      <span className="text-3xl md:text-4xl font-black text-emerald-600">Incluido</span>
+                      <span className="text-emerald-600/70 font-bold text-sm ml-2">(Bonificado)</span>
                     </div>
                     <div className="w-full h-[1px] bg-slate-100 mb-6" />
                     
-                    <ul className="flex flex-col gap-4 flex-1">
+                    <ul className="flex flex-col gap-4 flex-grow">
                       <li className="flex items-start gap-3"><CheckCircle2 className="w-5 h-5 text-emerald-500 shrink-0 mt-0.5"/><span className="text-slate-600 text-sm md:text-base leading-relaxed"><strong>Cualificación por precio:</strong> Listado transparente de tarifas que actúa como filtro de contactos sin presupuesto.</span></li>
                       <li className="flex items-start gap-3"><CheckCircle2 className="w-5 h-5 text-emerald-500 shrink-0 mt-0.5"/><span className="text-slate-600 text-sm md:text-base leading-relaxed"><strong>Reserva sin fricción:</strong> El usuario selecciona el servicio y es derivado para agendar ya convencido.</span></li>
                       <li className="flex items-start gap-3"><CheckCircle2 className="w-5 h-5 text-emerald-500 shrink-0 mt-0.5"/><span className="text-slate-600 text-sm md:text-base leading-relaxed"><strong>Posicionamiento de autoridad:</strong> Un menú de servicios detallado eleva el valor de tu trabajo.</span></li>
                       <li className="flex items-start gap-3"><CheckCircle2 className="w-5 h-5 text-emerald-500 shrink-0 mt-0.5"/><span className="text-slate-600 text-sm md:text-base leading-relaxed"><strong>Optimización de tiempo:</strong> Eliminación del desgaste por cotizaciones repetitivas de rutina.</span></li>
                     </ul>
                     <div className="mt-6 pt-4 border-t border-slate-100">
-                      <p className="text-xs text-slate-400 leading-tight">Mantenimiento a demanda: $15.000 ARS por cada solicitud futura de actualización masiva de precios o imágenes.</p>
+                      <p className="text-xs text-slate-500 leading-tight"><strong>Mantenimiento:</strong> Cada actualización (precio, imágenes, textos o servicio, máx 5 modificaciones) se cobra $15.000 ARS (aprox 10 USD). En caso de ser más, se amoldará un precio accesible según dificultad y tiempo.</p>
                     </div>
                   </div>
 
@@ -1343,91 +1318,91 @@ export default function Wizard() {
               </div>
             )}
 
-            {/* --- UPSELL DOMINIO (SaaS PRICING CARDS) --- */}
+            {/* --- UPSELL DOMINIO (SaaS PRICING CARDS - OPTIMIZADAS CON ZOOM) --- */}
             {currentStep.id === 'DOMAIN_TYPE' && (
-              <div className="flex flex-col gap-6 max-w-6xl mx-auto w-full text-center px-2 md:px-0 py-4">
-                <div className="mb-2">
-                  <p className="text-sm md:text-base font-bold tracking-widest text-blue-500 uppercase mb-1">Despliegue Profesional</p>
-                  <h2 className="text-3xl md:text-4xl font-black leading-tight text-slate-900 mb-3">Tu identidad en internet</h2>
-                  <p className="text-lg md:text-2xl text-slate-500 max-w-3xl mx-auto">Seleccioná cómo querés que te encuentren tus clientes. Un dominio profesional aumenta la confianza y las ventas.</p>
+              <div className="flex flex-col w-full max-w-[1200px] mx-auto px-2 lg:px-4 py-2">
+                <div className="text-center mb-6 md:mb-8">
+                  <h2 className="text-2xl md:text-3xl font-black text-slate-900 mb-2">Tu identidad en internet</h2>
+                  <p className="text-sm md:text-base text-slate-500">Seleccioná tu dominio. Deslizá hacia los lados en tu celular para ver las opciones.</p>
                 </div>
 
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 text-left mt-4">
+                {/* SCROLL HORIZONTAL MOBILE / GRID DESKTOP - Agregado py-8 (padding top y bottom) para que el zoom scale-[1.02] no corte las líneas de las tarjetas seleccionadas */}
+                <div className="flex lg:grid lg:grid-cols-3 gap-4 lg:gap-6 overflow-x-auto lg:overflow-visible snap-x snap-mandatory hide-scrollbar py-8 -mx-4 px-4 lg:mx-0 lg:px-0 items-stretch">
                   
-                  {/* CARD GRATIS */}
-                  <div onClick={() => handleInputChange('domainType', 'GRATIS')} className={`relative h-full flex flex-col p-6 md:p-8 rounded-[2rem] border-2 transition-all duration-300 cursor-pointer lg:order-1 ${data.domainType === 'GRATIS' ? 'border-slate-500 bg-slate-50/50 shadow-inner scale-[1.02] ring-4 ring-slate-400/10' : 'border-slate-200 bg-white hover:border-slate-300 hover:shadow-lg'}`}>
-                    <div className="flex justify-between items-center mb-4">
-                      <span className="text-slate-500 font-bold tracking-widest text-xs uppercase bg-slate-100 px-3 py-1 rounded-full">Plan Base</span>
-                      <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center ${data.domainType === 'GRATIS' ? 'border-slate-600 bg-slate-600' : 'border-slate-300'}`}>
-                        {data.domainType === 'GRATIS' && <div className="w-2 h-2 bg-white rounded-full" />}
+                  {/* CARD 1: GRATIS */}
+                  <div onClick={() => handleInputChange('domainType', 'GRATIS')} className={`relative h-full flex flex-col p-6 md:p-8 rounded-[2rem] border-2 transition-all cursor-pointer min-w-[85vw] sm:min-w-[320px] lg:min-w-0 snap-center bg-white ${data.domainType === 'GRATIS' ? 'border-slate-800 shadow-xl ring-1 ring-slate-800/20 scale-[1.02]' : 'border-slate-200 hover:border-slate-300'}`}>
+                    <div className="mb-4">
+                      <span className="text-[11px] font-bold tracking-widest uppercase text-slate-500 mb-1 block">Inicial</span>
+                      <h3 className="text-2xl font-black text-slate-900 leading-tight">Opción Express</h3>
+                      <div className="flex items-end gap-1 mt-2">
+                        <span className="text-3xl font-black text-slate-900">Gratis</span>
+                        <span className="text-sm text-slate-500 font-medium mb-1">.vercel.app</span>
                       </div>
                     </div>
-                    <h3 className="text-2xl md:text-3xl font-black text-slate-800 mb-2">Dominio Estándar</h3>
-                    <div className="flex items-baseline gap-1 mb-6">
-                      <span className="text-3xl md:text-4xl font-black text-slate-900">Gratis</span>
-                    </div>
-                    <div className="w-full h-[1px] bg-slate-100 mb-6" />
-                    <ul className="flex flex-col gap-4 flex-1">
-                      <li className="flex items-start gap-3"><CheckCircle2 className="w-5 h-5 text-slate-400 shrink-0 mt-0.5"/><span className="text-slate-500 text-sm md:text-base leading-snug">Alojamiento veloz en Vercel.</span></li>
-                      <li className="flex items-start gap-3"><CheckCircle2 className="w-5 h-5 text-slate-400 shrink-0 mt-0.5"/><span className="text-slate-500 text-sm md:text-base leading-snug">Tu marca tendrá un sufijo (Ej: tunegocio.vercel.app).</span></li>
-                      <li className="flex items-start gap-3"><CheckCircle2 className="w-5 h-5 text-slate-400 shrink-0 mt-0.5"/><span className="text-slate-500 text-sm md:text-base leading-snug">100% funcional y seguro para empezar.</span></li>
-                      <li className="flex items-start gap-3 mt-auto pt-4"><X className="w-5 h-5 text-red-400 shrink-0 mt-0.5"/><span className="text-slate-500 text-sm md:text-base leading-relaxed"><strong>Limitación técnica:</strong> Al usar una extensión (.vercel.app), limita el posicionamiento orgánico en Google.</span></li>
+                    
+                    <div className="w-full h-px bg-slate-100 mb-5" />
+                    
+                    <ul className="flex flex-col gap-4 flex-grow mt-2">
+                      <li className="flex items-start gap-3"><CheckCircle2 className="w-5 h-5 text-slate-400 shrink-0"/><div className="flex flex-col"><span className="text-sm text-slate-700 font-bold">Costo Cero de Mantenimiento</span><span className="text-xs text-slate-500 leading-relaxed mt-1">No hay pagos anuales, ni renovaciones. Alojamiento 100% bonificado.</span></div></li>
+                      <li className="flex items-start gap-3"><CheckCircle2 className="w-5 h-5 text-slate-400 shrink-0"/><div className="flex flex-col"><span className="text-sm text-slate-700 font-bold">Activación Inmediata</span><span className="text-xs text-slate-500 leading-relaxed mt-1">Web online en 48hs sin depender de registros externos.</span></div></li>
+                      <li className="flex items-start gap-3"><CheckCircle2 className="w-5 h-5 text-slate-400 shrink-0"/><div className="flex flex-col"><span className="text-sm text-slate-700 font-bold">SSL Incluido</span><span className="text-xs text-slate-500 leading-relaxed mt-1">Certificado de sitio seguro bonificado para tus clientas.</span></div></li>
+                      <li className="flex items-start gap-3"><CheckCircle2 className="w-5 h-5 text-slate-400 shrink-0"/><div className="flex flex-col"><span className="text-sm text-slate-700 font-bold">Ideal Redes Sociales</span><span className="text-xs text-slate-500 leading-relaxed mt-1">Perfecto para link en bio rápida de Instagram/TikTok.</span></div></li>
+                      <li className="flex items-start gap-3 mt-auto pt-4 border-t border-slate-50"><Globe className="w-5 h-5 text-blue-400 shrink-0"/><div className="flex flex-col"><span className="text-xs text-slate-500 leading-relaxed">Fricción cero. Nosotros generamos el enlace listo para compartir al instante.</span></div></li>
                     </ul>
                   </div>
 
-                  {/* CARD ONLINE */}
-                  <div onClick={() => handleInputChange('domainType', 'ONLINE')} className={`relative h-full flex flex-col p-6 md:p-8 rounded-[2rem] border-2 transition-all duration-300 cursor-pointer lg:order-2 ${data.domainType === 'ONLINE' ? 'border-blue-600 bg-blue-50/20 shadow-2xl ring-4 ring-blue-600/10 scale-[1.02]' : 'border-slate-200 bg-white hover:border-blue-300 hover:shadow-xl'}`}>
-                    <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-blue-600 text-white px-5 py-1.5 rounded-full text-xs font-black tracking-widest shadow-lg flex items-center gap-2 w-max">
+                  {/* CARD 2: .COM.AR */}
+                  <div onClick={() => handleInputChange('domainType', 'COMAR')} className={`relative h-full flex flex-col p-6 md:p-8 rounded-[2rem] border-2 transition-all cursor-pointer min-w-[85vw] sm:min-w-[320px] lg:min-w-0 snap-center bg-white ${data.domainType === 'COMAR' ? 'border-blue-600 shadow-2xl ring-1 ring-blue-600/20 scale-[1.02]' : 'border-slate-200 hover:border-blue-300'}`}>
+                    <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-blue-600 text-white px-4 py-1.5 rounded-full text-[10px] font-black tracking-widest shadow-md flex items-center gap-1.5 w-max z-10">
                       <TrendingUp size={14} className="fill-white"/> MEJOR VALOR
                     </div>
-                    <div className="flex justify-between items-center mb-4 mt-2">
-                      <span className="text-blue-700 font-bold tracking-widest text-xs uppercase bg-blue-100 px-3 py-1 rounded-full">Comercial</span>
-                      <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center ${data.domainType === 'ONLINE' ? 'border-blue-600 bg-blue-600' : 'border-slate-300'}`}>
-                        {data.domainType === 'ONLINE' && <div className="w-2 h-2 bg-white rounded-full" />}
+                    <div className="mb-4 mt-2">
+                      <span className="text-[11px] font-bold tracking-widest uppercase text-blue-600 mb-1 block">Nacional</span>
+                      <h3 className="text-2xl font-black text-slate-900 leading-tight">Opción Local</h3>
+                      <div className="flex items-end gap-1 mt-2">
+                        <span className="text-3xl font-black text-blue-600">+$15.000</span>
+                        <span className="text-xs text-blue-600 font-bold mb-1">ARS/año</span>
+                        <span className="text-sm text-slate-500 font-medium mb-1 ml-1">(.com.ar)</span>
                       </div>
                     </div>
-                    <h3 className="text-2xl md:text-3xl font-black text-slate-800 mb-2">Dominio Comercial</h3>
-                    <div className="flex items-baseline gap-1 mb-6">
-                      <span className="text-3xl md:text-4xl font-black text-blue-600">+$20.000</span><span className="text-blue-600/70 font-bold text-sm">ARS/año</span>
-                    </div>
-                    <div className="w-full h-[1px] bg-slate-100 mb-6" />
-                    <ul className="flex flex-col gap-4 flex-1">
-                      <li className="flex items-start gap-3"><CheckCircle2 className="w-5 h-5 text-blue-500 shrink-0 mt-0.5"/><span className="text-slate-600 text-sm md:text-base leading-snug"><strong>Identidad propia:</strong> Enlace personalizado (Ej: .store, .site, .online).</span></li>
-                      <li className="flex items-start gap-3"><CheckCircle2 className="w-5 h-5 text-blue-500 shrink-0 mt-0.5"/><span className="text-slate-600 text-sm md:text-base leading-snug"><strong>Aumento de confianza:</strong> Mayor tasa de clics desde redes sociales.</span></li>
-                      <li className="flex items-start gap-3"><CheckCircle2 className="w-5 h-5 text-blue-500 shrink-0 mt-0.5"/><span className="text-slate-600 text-sm md:text-base leading-snug"><strong>Aislamiento de marca:</strong> Elimina sufijos de terceros.</span></li>
-                      <li className="flex items-start gap-3"><CheckCircle2 className="w-5 h-5 text-blue-500 shrink-0 mt-0.5"/><span className="text-slate-600 text-sm md:text-base leading-snug"><strong>Gestión delegada:</strong> Nos encargamos de todo el registro y configuración técnica.</span></li>
+                    
+                    <div className="w-full h-px bg-slate-100 mb-5" />
+                    
+                    <ul className="flex flex-col gap-4 flex-grow mt-2">
+                      <li className="flex items-start gap-3"><CheckCircle2 className="w-5 h-5 text-blue-500 shrink-0"/><div className="flex flex-col"><span className="text-sm text-slate-700 font-bold">Identidad Nacional</span><span className="text-xs text-slate-500 leading-relaxed mt-1">Genera confianza inmediata al mostrar que operás en Argentina.</span></div></li>
+                      <li className="flex items-start gap-3"><CheckCircle2 className="w-5 h-5 text-blue-500 shrink-0"/><div className="flex flex-col"><span className="text-sm text-slate-700 font-bold">Posicionamiento Local</span><span className="text-xs text-slate-500 leading-relaxed mt-1">Ideal para aparecer más rápido en Google en tu ciudad.</span></div></li>
+                      <li className="flex items-start gap-3"><CheckCircle2 className="w-5 h-5 text-blue-500 shrink-0"/><div className="flex flex-col"><span className="text-sm text-slate-700 font-bold">Titularidad Legal</span><span className="text-xs text-slate-500 leading-relaxed mt-1">El nombre queda registrado 100% bajo tu CUIT/CUIL.</span></div></li>
+                      <li className="flex items-start gap-3"><CheckCircle2 className="w-5 h-5 text-blue-500 shrink-0"/><div className="flex flex-col"><span className="text-sm text-slate-700 font-bold">Previsibilidad</span><span className="text-xs text-slate-500 leading-relaxed mt-1">Mantenimiento anual fijo en pesos, sin impuestos sorpresa.</span></div></li>
+                      <li className="flex items-start gap-3 mt-auto pt-4 border-t border-slate-50"><Info className="w-5 h-5 text-blue-400 shrink-0"/><div className="flex flex-col"><span className="text-xs text-slate-500 leading-relaxed">Registro legal bajo tu CUIT. Te enviamos un tutorial simple para delegarnos en AFIP.</span></div></li>
                     </ul>
                   </div>
 
-                  {/* CARD COM */}
-                  <div onClick={() => handleInputChange('domainType', 'COM')} className={`relative h-full flex flex-col p-6 md:p-8 rounded-[2rem] border-2 transition-all duration-300 cursor-pointer lg:order-3 ${data.domainType === 'COM' ? 'border-violet-500 bg-violet-50/10 shadow-2xl ring-4 ring-violet-500/20 scale-[1.02]' : 'border-slate-200 bg-white hover:border-violet-300 hover:shadow-xl'}`}>
-                    <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-gradient-to-r from-violet-600 to-fuchsia-600 text-white px-5 py-1.5 rounded-full text-xs font-black tracking-widest shadow-lg flex items-center gap-2 w-max">
-                      <Star size={14} className="fill-white"/> MÁS ELEGIDO
+                  {/* CARD 3: .COM */}
+                  <div onClick={() => handleInputChange('domainType', 'COM')} className={`relative h-full flex flex-col p-6 md:p-8 rounded-[2rem] border-2 transition-all cursor-pointer min-w-[85vw] sm:min-w-[320px] lg:min-w-0 snap-center bg-white ${data.domainType === 'COM' ? 'border-violet-600 shadow-2xl ring-1 ring-violet-600/20 scale-[1.02]' : 'border-slate-200 hover:border-violet-300'}`}>
+                    <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-gradient-to-r from-violet-600 to-fuchsia-600 text-white px-4 py-1.5 rounded-full text-[10px] font-black tracking-widest shadow-md flex items-center gap-1.5 w-max z-10">
+                      <Star size={14} className="fill-white"/> VIP / MÁS ELEGIDO
                     </div>
-                    <div className="flex justify-between items-center mb-4 mt-2">
-                      <span className="text-violet-700 font-bold tracking-widest text-xs uppercase bg-violet-100 px-3 py-1 rounded-full">Premium</span>
-                      <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center ${data.domainType === 'COM' ? 'border-violet-600 bg-violet-600' : 'border-slate-300'}`}>
-                        {data.domainType === 'COM' && <div className="w-2 h-2 bg-white rounded-full" />}
+                    <div className="mb-4 mt-2">
+                      <span className="text-[11px] font-bold tracking-widest uppercase text-violet-600 mb-1 block">Internacional</span>
+                      <h3 className="text-2xl font-black text-slate-900 leading-tight">Opción VIP</h3>
+                      <div className="flex items-end gap-1 mt-2">
+                        <span className="text-3xl font-black text-violet-600">+$30.000</span>
+                        <span className="text-xs text-violet-600 font-bold mb-1">ARS/año</span>
+                        <span className="text-sm text-slate-500 font-medium mb-1 ml-1">(.com)</span>
                       </div>
                     </div>
-                    <h3 className="text-2xl md:text-3xl font-black text-slate-800 mb-2">Dominio .COM</h3>
-                    <div className="flex items-baseline gap-1 mb-6">
-                      <span className="text-3xl md:text-4xl font-black text-violet-600">+$30.000</span><span className="text-violet-600/70 font-bold text-sm">ARS/año</span>
-                    </div>
-                    <div className="w-full h-[1px] bg-slate-100 mb-6" />
-                    <ul className="flex flex-col gap-4 flex-1">
-                      <li className="flex items-start gap-3"><CheckCircle2 className="w-5 h-5 text-violet-500 shrink-0 mt-0.5"/><span className="text-slate-600 text-sm md:text-base leading-snug"><strong>Autoridad global:</strong> El estándar más reconocido a nivel mundial (Ej: tunegocio.com).</span></li>
-                      <li className="flex items-start gap-3"><CheckCircle2 className="w-5 h-5 text-violet-500 shrink-0 mt-0.5"/><span className="text-slate-600 text-sm md:text-base leading-snug"><strong>Optimización SEO:</strong> Máxima prioridad en Google para posicionar por encima de competidores.</span></li>
-                      <li className="flex items-start gap-3"><CheckCircle2 className="w-5 h-5 text-violet-500 shrink-0 mt-0.5"/><span className="text-slate-600 text-sm md:text-base leading-snug"><strong>Protección de marca:</strong> Blindaje de tu nombre comercial en internet.</span></li>
-                      <li className="flex items-start gap-3"><CheckCircle2 className="w-5 h-5 text-violet-500 shrink-0 mt-0.5"/><span className="text-slate-600 text-sm md:text-base leading-snug"><strong>Activo digital:</strong> Se convierte en propiedad intelectual de alto valor.</span></li>
+                    
+                    <div className="w-full h-px bg-slate-100 mb-5" />
+                    
+                    <ul className="flex flex-col gap-4 flex-grow mt-2">
+                      <li className="flex items-start gap-3"><CheckCircle2 className="w-5 h-5 text-violet-500 shrink-0"/><div className="flex flex-col"><span className="text-sm text-slate-700 font-bold">Fricción Cero</span><span className="text-xs text-slate-500 leading-relaxed mt-1">Activación inmediata. Tu web queda online sin trámites burocráticos.</span></div></li>
+                      <li className="flex items-start gap-3"><CheckCircle2 className="w-5 h-5 text-violet-500 shrink-0"/><div className="flex flex-col"><span className="text-sm text-slate-700 font-bold">Prestigio Global</span><span className="text-xs text-slate-500 leading-relaxed mt-1">La terminación más reconocida y profesional a nivel mundial.</span></div></li>
+                      <li className="flex items-start gap-3"><CheckCircle2 className="w-5 h-5 text-violet-500 shrink-0"/><div className="flex flex-col"><span className="text-sm text-slate-700 font-bold">Llave en Mano</span><span className="text-xs text-slate-500 leading-relaxed mt-1">Nos hacemos cargo del 100% del setup técnico y pagos.</span></div></li>
+                      <li className="flex items-start gap-3"><CheckCircle2 className="w-5 h-5 text-violet-500 shrink-0"/><div className="flex flex-col"><span className="text-sm text-slate-700 font-bold">Privacidad Total</span><span className="text-xs text-slate-500 leading-relaxed mt-1">Tus datos personales no quedan expuestos en registros locales.</span></div></li>
+                      <li className="flex items-start gap-3 mt-auto pt-4 border-t border-slate-50"><Globe className="w-5 h-5 text-violet-400 shrink-0"/><div className="flex flex-col"><span className="text-xs text-slate-500 leading-relaxed">Vos nos confirmás el nombre de tu marca y nosotros nos aseguramos de que funcione.</span></div></li>
                     </ul>
                   </div>
 
-                </div>
-                
-                <div className="flex items-center justify-center gap-3 mt-4">
-                  <ShieldCheck className="w-5 h-5 text-green-600" />
-                  <p className="text-sm md:text-base text-slate-600 font-medium">El pago del dominio se realiza de forma 100% segura a través de Mercado Pago al finalizar el formulario.</p>
                 </div>
               </div>
             )}
@@ -1488,12 +1463,12 @@ export default function Wizard() {
                   </div>
                   
                   {data.domainType === 'COM' && <div className="flex justify-between items-center mb-4"><span className="text-lg text-slate-600">Registro Dominio .COM</span><span className="text-lg font-bold text-slate-800">$30.000</span></div>}
-                  {data.domainType === 'ONLINE' && <div className="flex justify-between items-center mb-4"><span className="text-lg text-slate-600">Registro Dominio .ONLINE</span><span className="text-lg font-bold text-slate-800">$20.000</span></div>}
+                  {data.domainType === 'COMAR' && <div className="flex justify-between items-center mb-4"><span className="text-lg text-slate-600">Registro Dominio .COM.AR</span><span className="text-lg font-bold text-slate-800">$15.000</span></div>}
                   {data.domainType === 'GRATIS' && <div className="flex justify-between items-center mb-4"><span className="text-lg text-slate-600">Subdominio Gratuito</span><span className="text-lg font-bold text-slate-800">$0</span></div>}
                   
                   {data.templateSelected === 'T1' && data.t1MenuMode === 'ecommerce' && <div className="flex justify-between items-center mb-4"><span className="text-lg text-slate-600">Módulo E-commerce Lite</span><span className="text-lg font-bold text-slate-800">$30.000</span></div>}
-                  {data.templateSelected === 'T2' && data.t2Dynamic === 'productos' && data.t2ProductMode === 'vitrina' && <div className="flex justify-between items-center mb-4"><span className="text-lg text-slate-600">Módulo Vitrina con Precios</span><span className="text-lg font-bold text-slate-800">$30.000</span></div>}
-                  {data.templateSelected === 'T2' && data.t2Dynamic === 'servicios' && data.t2ServicePricing === 'con_precios' && <div className="flex justify-between items-center mb-4"><span className="text-lg text-slate-600">Módulo Servicios + Precios</span><span className="text-lg font-bold text-slate-800">$30.000</span></div>}
+                  {data.templateSelected === 'T2' && data.t2Dynamic === 'productos' && data.t2ProductMode === 'vitrina' && <div className="flex justify-between items-center mb-4"><span className="text-lg text-slate-600">Catálogo Interactivo</span><span className="text-lg font-bold text-green-600 bg-green-50 px-3 py-1 rounded-lg">¡Bonificado!</span></div>}
+                  {data.templateSelected === 'T2' && data.t2Dynamic === 'servicios' && data.t2ServicePricing === 'con_precios' && <div className="flex justify-between items-center mb-4"><span className="text-lg text-slate-600">Lista Interactiva</span><span className="text-lg font-bold text-green-600 bg-green-50 px-3 py-1 rounded-lg">¡Bonificado!</span></div>}
                   
                   <div className="border-t-4 border-slate-100 pt-6 mt-6 flex justify-between items-center">
                     <span className="font-black text-2xl text-slate-900">TOTAL</span>
@@ -1541,11 +1516,11 @@ export default function Wizard() {
                 <div className="flex justify-between items-center"><span className="text-slate-600 font-medium">Plantilla ({data.templateSelected})</span><span className="text-green-500 font-bold bg-green-50 px-2 py-0.5 rounded">¡Pagado!</span></div>
                 
                 {data.domainType === 'COM' && <div className="flex justify-between items-center"><span className="text-slate-600 font-medium">Dominio .COM</span><span className="font-bold text-slate-800">$30.000</span></div>}
-                {data.domainType === 'ONLINE' && <div className="flex justify-between items-center"><span className="text-slate-600 font-medium">Dominio .ONLINE</span><span className="font-bold text-slate-800">$20.000</span></div>}
+                {data.domainType === 'COMAR' && <div className="flex justify-between items-center"><span className="text-slate-600 font-medium">Dominio .COM.AR</span><span className="font-bold text-slate-800">$15.000</span></div>}
                 
                 {data.templateSelected === 'T1' && data.t1MenuMode === 'ecommerce' && <div className="flex justify-between items-center"><span className="text-slate-600 font-medium">Modo E-commerce</span><span className="font-bold text-slate-800">$30.000</span></div>}
-                {data.templateSelected === 'T2' && data.t2Dynamic === 'productos' && data.t2ProductMode === 'vitrina' && <div className="flex justify-between items-center"><span className="text-slate-600 font-medium">Modo Vitrina</span><span className="font-bold text-slate-800">$30.000</span></div>}
-                {data.templateSelected === 'T2' && data.t2Dynamic === 'servicios' && data.t2ServicePricing === 'con_precios' && <div className="flex justify-between items-center"><span className="text-slate-600 font-medium">Lista de Precios</span><span className="font-bold text-slate-800">$30.000</span></div>}
+                {data.templateSelected === 'T2' && data.t2Dynamic === 'productos' && data.t2ProductMode === 'vitrina' && <div className="flex justify-between items-center"><span className="text-slate-600 font-medium">Catálogo Interactivo</span><span className="font-bold text-green-500 bg-green-50 px-2 py-0.5 rounded">¡Bonificado!</span></div>}
+                {data.templateSelected === 'T2' && data.t2Dynamic === 'servicios' && data.t2ServicePricing === 'con_precios' && <div className="flex justify-between items-center"><span className="text-slate-600 font-medium">Lista de Precios</span><span className="font-bold text-green-500 bg-green-50 px-2 py-0.5 rounded">¡Bonificado!</span></div>}
                 
                 <div className="border-t border-slate-100 pt-3 mt-1 flex justify-between items-center">
                   <span className="font-black text-slate-900 text-base">Total</span>
