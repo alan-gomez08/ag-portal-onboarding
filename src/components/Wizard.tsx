@@ -118,7 +118,10 @@ export default function Wizard() {
       }
     }
     
-    s.push({ id: 'REVIEWS_NEW' }, { id: 'CONTACT_NEW' }, { id: 'DOMAIN_TYPE' });
+    if (data.templateSelected !== 'T3') {
+      s.push({ id: 'REVIEWS_NEW' });
+    }
+    s.push({ id: 'CONTACT_NEW' }, { id: 'DOMAIN_TYPE' });
     if (data.domainType !== '' && data.domainType !== 'GRATIS') s.push({ id: 'DOMAIN_OPTIONS' });
     s.push({ id: 'TERMS' }, { id: 'END' });
     return s;
@@ -307,11 +310,13 @@ export default function Wizard() {
           preguntasFrecuentes: data.t3Faqs.filter(f => f.question.trim() !== '' && f.answer.trim() !== '')
         }),
 
-        confianza: {
-          origenResenas: data.useGoogleMapsReviews ? 'Google Maps' : 'Manuales',
-          linkGoogleMaps: data.useGoogleMapsReviews ? data.googleMapsLink : null,
-          resenasManuales: data.useGoogleMapsReviews ? null : data.reviewsList
-        },
+        ...(data.templateSelected !== 'T3' && {
+          confianza: {
+            origenResenas: data.useGoogleMapsReviews ? 'Google Maps' : 'Manuales',
+            linkGoogleMaps: data.useGoogleMapsReviews ? data.googleMapsLink : null,
+            resenasManuales: data.useGoogleMapsReviews ? null : data.reviewsList
+          }
+        }),
         contacto: { whatsapp: data.whatsapp, redSocial: data.socialLinks, direccionMapsLink: data.address || 'No tiene local' },
         dominio: { tipo: data.domainType, opcionesNombres: data.domainType !== 'GRATIS' ? data.domainOptionsList : [] }
       };
