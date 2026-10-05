@@ -162,7 +162,6 @@ export default function Wizard() {
     let total = 0;
     if (data.domainType === 'COM') total += 30000;
     if (data.domainType === 'COMAR') total += 15000;
-    if (data.templateSelected === 'T1' && data.t1MenuMode === 'ecommerce') total += 30000;
     return total;
   };
 
@@ -189,7 +188,7 @@ export default function Wizard() {
     if (step === 'HERO_DESKTOP') return data.heroImage === '';
     if (step === 'HERO_MOBILE') return data.heroImageMobile === '';
 
-    if (step === 'T1_ABOUT') return data.aboutImage === '' || data.aboutText.trim() === '';
+    if (step === 'T1_ABOUT') return data.aboutText.trim() === '';
     if (step === 'T1_UPSELL') return data.t1MenuMode === '';
     if (step === 'T1_BULK_UPLOAD') return data.t1BulkFileUrl.trim() === '';
     if (step === 'T1_BULK_FEATURED') return data.t1BulkFeatured.some(n => n.trim() === '');
@@ -328,16 +327,8 @@ export default function Wizard() {
 
       if (totalToPay > 0) {
         let paymentLink = "";
-        const isT1Upsell = data.templateSelected === 'T1' && data.t1MenuMode === 'ecommerce';
-
-        if (isT1Upsell) {
-            if (data.domainType === 'COM') paymentLink = "https://mpago.la/2FttjFq"; 
-            else if (data.domainType === 'COMAR') paymentLink = "https://mpago.la/2xfJC7f"; 
-            else paymentLink = "https://mpago.la/2yNRhjy"; 
-        } else {
-            if (data.domainType === 'COM') paymentLink = "https://mpago.la/1WttGMk"; 
-            else if (data.domainType === 'COMAR') paymentLink = "https://mpago.la/1iLbwZF"; 
-        }
+        if (data.domainType === 'COM') paymentLink = "https://mpago.la/1WttGMk"; 
+        else if (data.domainType === 'COMAR') paymentLink = "https://mpago.la/1iLbwZF";
 
         if (paymentLink !== "") {
             alert(`¡Toda tu información se guardó correctamente! 🎉\n\nEl total de tus adicionales es de $${totalToPay.toLocaleString('es-AR')}.\n\nSerás redirigido a Mercado Pago para completar tu pedido.`);
@@ -360,17 +351,17 @@ export default function Wizard() {
   const slideVariants = { enter: { y: 30, opacity: 0 }, center: { y: 0, opacity: 1 }, exit: { y: -30, opacity: 0 } };
 
   return (
-    <div className="min-h-screen bg-[#F8FAFC] text-slate-800 font-sans flex flex-col items-center pt-20 md:pt-24 px-4 relative selection:bg-blue-200">
+    <div className="min-h-screen bg-[#F8FAFC] text-slate-800 font-sans flex flex-col items-center pt-16 md:pt-20 px-4 relative selection:bg-blue-200">
       
       {/* NAVEGACIÓN SUPERIOR FIJA */}
-      <div className="fixed top-0 left-0 w-full flex flex-col items-center z-50 bg-white/90 backdrop-blur-md border-b border-slate-200 shadow-sm pt-safe-top pt-4 pb-3 px-4 md:px-12">
-        <div className="w-full max-w-5xl flex items-center justify-between">
-          <img src="/assets/Logo.webp" alt="Logo" className="h-7 md:h-10 w-auto opacity-90" />
+      <div className="fixed top-0 left-0 w-full flex flex-col items-center z-50 bg-white/90 backdrop-blur-md border-b border-slate-200 shadow-sm pt-safe-top py-2.5 md:py-3 px-4 md:px-8">
+        <div className="w-full max-w-4xl flex items-center justify-between">
+          <img src="/assets/Logo.webp" alt="Logo" className="h-6 md:h-8 w-auto opacity-90" />
           
           {currentStep.id !== 'WELCOME' && currentStep.id !== 'END' && (
-            <div className="flex gap-1 md:gap-2">
+            <div className="flex gap-1 md:gap-1.5">
               {steps.map((s, i) => (
-                <div key={i} className={`h-1.5 md:h-2 rounded-full transition-all duration-500 ${i === currentStepIndex ? 'w-5 md:w-8 bg-blue-600' : i < currentStepIndex ? 'w-1.5 md:w-2 bg-blue-300' : 'w-1.5 md:w-2 bg-slate-200'}`} />
+                <div key={i} className={`h-1.5 rounded-full transition-all duration-500 ${i === currentStepIndex ? 'w-5 md:w-7 bg-blue-600' : i < currentStepIndex ? 'w-1.5 bg-blue-300' : 'w-1.5 bg-slate-200'}`} />
               ))}
             </div>
           )}
@@ -378,7 +369,7 @@ export default function Wizard() {
       </div>
 
       {/* CONTENEDOR PRINCIPAL */}
-      <div className="w-full max-w-5xl flex flex-col pb-36 md:pb-40 mt-6 md:mt-8">
+      <div className="w-full max-w-4xl flex flex-col pb-28 md:pb-32 mt-3 md:mt-5">
         <AnimatePresence mode="wait">
           <motion.div key={currentStep.id} variants={slideVariants} initial="enter" animate="center" exit="exit" transition={{ duration: 0.4, ease: "easeOut" }} className="w-full flex flex-col justify-center">
             
@@ -612,91 +603,95 @@ export default function Wizard() {
             )}
 
             {currentStep.id === 'T1_ABOUT' && (
-              <div className="flex flex-col gap-4 md:gap-6 max-w-4xl mx-auto w-full text-center px-2 md:px-0 py-4">
-                <p className="text-sm md:text-base font-bold tracking-widest text-blue-500 uppercase mb-0">Sobre Nosotros</p>
-                <h2 className="text-3xl md:text-4xl font-black leading-tight text-slate-900 mb-2">Contanos de ustedes</h2>
-                <div className="flex items-start gap-4 bg-blue-50 p-5 rounded-2xl text-left border border-blue-100 max-w-2xl mx-auto mb-4">
-                  <Info className="text-blue-500 shrink-0 mt-0.5" size={24} />
-                  <p className="text-blue-800 text-sm md:text-base leading-relaxed">A los clientes les gusta saber quién está detrás del negocio. Hace cuánto hacen lo que hacen, por qué eligieron este rubro... Nuestro equipo de redacción se va a encargar de darle un tono emocional y profesional. ¡Ambos campos son obligatorios!</p>
+              <div className="flex flex-col gap-4 max-w-2xl mx-auto w-full text-center px-2 md:px-0 py-2">
+                <p className="text-xs md:text-sm font-bold tracking-widest text-blue-500 uppercase mb-0">Sobre Nosotros</p>
+                <h2 className="text-2xl md:text-3xl font-black leading-tight text-slate-900 mb-1">Contanos de ustedes</h2>
+                <div className="flex items-start gap-3 bg-blue-50 p-4 rounded-2xl text-left border border-blue-100 max-w-2xl mx-auto mb-2">
+                  <Info className="text-blue-500 shrink-0 mt-0.5" size={20} />
+                  <p className="text-blue-800 text-sm leading-relaxed">
+                    A los clientes les gusta saber quién está detrás del negocio. Hace cuánto hacen lo que hacen, por qué eligieron este rubro... Nuestro equipo de redacción se va a encargar de darle un tono emocional y profesional.
+                  </p>
                 </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 text-left">
-                  <div className="flex flex-col gap-4 bg-white p-6 rounded-[2rem] border-2 border-slate-100 shadow-sm">
-                    <label className="font-bold text-slate-700 text-lg md:text-xl">
-                      {data.templateSelected === 'T1' 
-                        ? 'Compartinos una foto linda del equipo, el mostrador o tu cocina (Horizontal)' 
-                        : 'Compartinos una foto linda del equipo, la oficina o tu estudio (Horizontal)'}
-                    </label>
-                    <ImageUpload userId={data.mercadoLibreUser} value={data.aboutImage} onChange={(url) => handleInputChange('aboutImage', url)} />
-                  </div>
+                <div className="w-full text-left bg-white p-5 md:p-6 rounded-[1.75rem] border-2 border-slate-200 shadow-sm focus-within:border-blue-500 transition-colors">
+                  <label className="block font-bold text-slate-700 text-base md:text-lg mb-2">
+                    Tu historia o presentación
+                  </label>
                   <textarea 
                     value={data.aboutText} 
                     onChange={(e) => handleInputChange('aboutText', e.target.value)} 
                     placeholder={data.templateSelected === 'T1' 
-                      ? "Ej: Todo empezó en 2018 con una receta familiar. Nos encanta ver a la gente disfrutar..." 
-                      : "Ej: Somos un equipo de profesionales apasionados. Arrancamos hace unos años y hoy trabajamos para..."} 
-                    className="w-full text-lg md:text-xl bg-white border-2 border-slate-100 rounded-[2rem] focus:border-blue-500 outline-none p-6 md:p-8 min-h-[220px] resize-none shadow-sm" 
+                      ? "Ej: Todo empezó en 2018 con una receta familiar. Nos encanta ver a la gente disfrutar de lo que hacemos..." 
+                      : "Ej: Somos un equipo de profesionales apasionados. Arrancamos hace unos años y hoy trabajamos para brindar la mejor atención..."} 
+                    className="w-full text-base md:text-lg bg-slate-50/50 border border-slate-200 rounded-xl focus:bg-white focus:border-blue-500 outline-none p-4 md:p-5 min-h-[180px] resize-none transition-all shadow-inner" 
                   />
+                  <p className="text-xs text-slate-400 mt-2">
+                    Escribilo con tus palabras, nuestro equipo se encarga de pulirlo y dejarlo perfecto.
+                  </p>
                 </div>
               </div>
             )}
 
             {/* --- UPSELL T1 (SaaS PRICING CARDS) --- */}
             {currentStep.id === 'T1_UPSELL' && (
-              <div className="flex flex-col gap-4 md:gap-6 max-w-5xl mx-auto w-full text-center px-2 md:px-0 py-4">
-                <p className="text-sm md:text-base font-bold tracking-widest text-blue-500 uppercase mb-0">Estructura</p>
-                <h2 className="text-3xl md:text-4xl font-black leading-tight text-slate-900 flex items-center justify-center gap-3"><ShoppingCart className="text-blue-500 w-10 h-10"/> Elegí el modo de tu menú</h2>
+              <div className="flex flex-col gap-4 md:gap-5 max-w-4xl mx-auto w-full text-center px-2 md:px-0 py-2">
+                <p className="text-xs md:text-sm font-bold tracking-widest text-blue-500 uppercase mb-0">Estructura</p>
+                <h2 className="text-2xl md:text-3xl font-black leading-tight text-slate-900 flex items-center justify-center gap-2.5">
+                  <ShoppingCart className="text-blue-500 w-7 h-7 md:w-8 md:h-8"/> Elegí el modo de tu menú
+                </h2>
                 
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-4 text-left">
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 mt-2 text-left">
                   
                   {/* CARD 1: BASE */}
-                  <div onClick={() => handleInputChange('t1MenuMode', 'abierto')} className={`relative h-full flex flex-col p-6 md:p-8 rounded-[2rem] border-2 transition-all duration-300 cursor-pointer ${data.t1MenuMode === 'abierto' ? 'border-blue-600 bg-blue-50/20 shadow-xl ring-4 ring-blue-600/10 scale-[1.02]' : 'border-slate-200 bg-white hover:border-blue-300 hover:shadow-lg'}`}>
-                    <div className="flex justify-between items-center mb-4">
+                  <div onClick={() => handleInputChange('t1MenuMode', 'abierto')} className={`relative h-full flex flex-col p-5 md:p-6 rounded-[1.75rem] border-2 transition-all duration-300 cursor-pointer ${data.t1MenuMode === 'abierto' ? 'border-blue-600 bg-blue-50/20 shadow-xl ring-4 ring-blue-600/10 scale-[1.01]' : 'border-slate-200 bg-white hover:border-blue-300 hover:shadow-lg'}`}>
+                    <div className="flex justify-between items-center mb-3">
                       <span className="text-slate-500 font-bold tracking-widest text-xs uppercase bg-slate-100 px-3 py-1 rounded-full">Plan Base</span>
-                      <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center ${data.t1MenuMode === 'abierto' ? 'border-blue-600 bg-blue-600' : 'border-slate-300'}`}>
-                        {data.t1MenuMode === 'abierto' && <div className="w-2 h-2 bg-white rounded-full" />}
+                      <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${data.t1MenuMode === 'abierto' ? 'border-blue-600 bg-blue-600' : 'border-slate-300'}`}>
+                        {data.t1MenuMode === 'abierto' && <div className="w-1.5 h-1.5 bg-white rounded-full" />}
                       </div>
                     </div>
-                    <h3 className="text-2xl md:text-3xl font-black text-slate-800 mb-2">Catálogo de Exhibición</h3>
-                    <div className="flex items-baseline gap-1 mb-6">
-                      <span className="text-3xl md:text-4xl font-black text-slate-900">Incluido</span>
+                    <h3 className="text-xl md:text-2xl font-black text-slate-800 mb-1">Catálogo de Exhibición</h3>
+                    <div className="flex items-baseline gap-2 mb-4">
+                      <span className="text-2xl md:text-3xl font-black text-slate-900">Incluido</span>
+                      <span className="text-emerald-700 font-bold text-xs bg-emerald-50 border border-emerald-200 px-2.5 py-0.5 rounded-full">¡Bonificado!</span>
                     </div>
-                    <div className="w-full h-[1px] bg-slate-100 mb-6" />
+                    <div className="w-full h-[1px] bg-slate-100 mb-4" />
                     
-                    <ul className="flex flex-col gap-4 flex-grow">
-                      <li className="flex items-start gap-3"><CheckCircle2 className="w-5 h-5 text-green-500 shrink-0 mt-0.5"/><span className="text-slate-600 text-sm md:text-base leading-relaxed"><strong>Exhibición visual del catálogo:</strong> Presentación estética de tu línea de productos (sin visualización tarifaria).</span></li>
-                      <li className="flex items-start gap-3"><CheckCircle2 className="w-5 h-5 text-green-500 shrink-0 mt-0.5"/><span className="text-slate-600 text-sm md:text-base leading-relaxed"><strong>Canal de consulta directa:</strong> Botones de contacto individual enlazados a tu WhatsApp corporativo.</span></li>
-                      <li className="flex items-start gap-3"><CheckCircle2 className="w-5 h-5 text-green-500 shrink-0 mt-0.5"/><span className="text-slate-600 text-sm md:text-base leading-relaxed"><strong>Identidad corporativa:</strong> Diseño profesional adaptado a los colores y lineamientos de tu marca.</span></li>
-                      <li className="flex items-start gap-3 mt-auto pt-4"><X className="w-5 h-5 text-red-400 shrink-0 mt-0.5"/><span className="text-slate-500 text-sm md:text-base leading-relaxed"><strong>Limitación técnica:</strong> Este plan opera exclusivamente como vitrina. No incluye motor de ventas, carrito interactivo ni automatización de pedidos.</span></li>
+                    <ul className="flex flex-col gap-3 flex-grow text-xs md:text-sm">
+                      <li className="flex items-start gap-2.5"><CheckCircle2 className="w-4 h-4 text-green-500 shrink-0 mt-0.5"/><span className="text-slate-600 leading-relaxed"><strong>Exhibición visual del catálogo:</strong> Presentación estética de tu línea de productos (sin visualización tarifaria).</span></li>
+                      <li className="flex items-start gap-2.5"><CheckCircle2 className="w-4 h-4 text-green-500 shrink-0 mt-0.5"/><span className="text-slate-600 leading-relaxed"><strong>Canal de consulta directa:</strong> Botones de contacto individual enlazados a tu WhatsApp corporativo.</span></li>
+                      <li className="flex items-start gap-2.5"><CheckCircle2 className="w-4 h-4 text-green-500 shrink-0 mt-0.5"/><span className="text-slate-600 leading-relaxed"><strong>Identidad corporativa:</strong> Diseño profesional adaptado a los colores y lineamientos de tu marca.</span></li>
+                      <li className="flex items-start gap-2.5 mt-auto pt-3 border-t border-slate-50"><X className="w-4 h-4 text-red-400 shrink-0 mt-0.5"/><span className="text-slate-500 leading-relaxed"><strong>Limitación técnica:</strong> Este plan opera exclusivamente como vitrina. No incluye motor de ventas, carrito interactivo ni automatización de pedidos.</span></li>
                     </ul>
                   </div>
 
                   {/* CARD 2: PREMIUM */}
-                  <div onClick={() => handleInputChange('t1MenuMode', 'ecommerce')} className={`relative h-full flex flex-col p-6 md:p-8 rounded-[2rem] border-2 transition-all duration-300 cursor-pointer ${data.t1MenuMode === 'ecommerce' ? 'border-emerald-500 bg-emerald-50/10 shadow-2xl ring-4 ring-emerald-500/20 scale-[1.02]' : 'border-slate-200 bg-white hover:border-emerald-300 hover:shadow-xl'}`}>
-                    <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-gradient-to-r from-emerald-500 to-teal-500 text-white px-5 py-1.5 rounded-full text-xs font-black tracking-widest shadow-lg flex items-center gap-2 w-max">
-                      <TrendingUp size={14} /> POTENCIA TUS VENTAS
+                  <div onClick={() => handleInputChange('t1MenuMode', 'ecommerce')} className={`relative h-full flex flex-col p-5 md:p-6 rounded-[1.75rem] border-2 transition-all duration-300 cursor-pointer ${data.t1MenuMode === 'ecommerce' ? 'border-emerald-500 bg-emerald-50/10 shadow-2xl ring-4 ring-emerald-500/20 scale-[1.01]' : 'border-slate-200 bg-white hover:border-emerald-300 hover:shadow-xl'}`}>
+                    <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 bg-gradient-to-r from-emerald-500 to-teal-500 text-white px-4 py-1 rounded-full text-[11px] font-black tracking-widest shadow-md flex items-center gap-1.5 w-max">
+                      <TrendingUp size={13} /> POTENCIA TUS VENTAS
                     </div>
                     
-                    <div className="flex justify-between items-center mb-4 mt-2">
+                    <div className="flex justify-between items-center mb-3 mt-1">
                       <span className="text-emerald-700 font-bold tracking-widest text-xs uppercase bg-emerald-100 px-3 py-1 rounded-full">Módulo Alta Conversión</span>
-                      <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center ${data.t1MenuMode === 'ecommerce' ? 'border-emerald-500 bg-emerald-500' : 'border-slate-300'}`}>
-                        {data.t1MenuMode === 'ecommerce' && <div className="w-2 h-2 bg-white rounded-full" />}
+                      <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${data.t1MenuMode === 'ecommerce' ? 'border-emerald-500 bg-emerald-500' : 'border-slate-300'}`}>
+                        {data.t1MenuMode === 'ecommerce' && <div className="w-1.5 h-1.5 bg-white rounded-full" />}
                       </div>
                     </div>
-                    <h3 className="text-2xl md:text-3xl font-black text-slate-800 mb-2">E-Commerce Lite</h3>
-                    <div className="flex items-baseline gap-1 mb-6">
-                      <span className="text-3xl md:text-4xl font-black text-emerald-600">+$30.000</span><span className="text-emerald-600/70 font-bold text-sm">ARS</span>
+                    <h3 className="text-xl md:text-2xl font-black text-slate-800 mb-1">E-Commerce Lite</h3>
+                    <div className="flex items-baseline gap-2 mb-4">
+                      <span className="text-2xl md:text-3xl font-black text-emerald-600">Incluido</span>
+                      <span className="text-emerald-700 font-bold text-xs bg-emerald-50 border border-emerald-200 px-2.5 py-0.5 rounded-full">¡Bonificado!</span>
                     </div>
-                    <div className="w-full h-[1px] bg-slate-100 mb-6" />
+                    <div className="w-full h-[1px] bg-slate-100 mb-4" />
                     
-                    <ul className="flex flex-col gap-4 flex-grow">
-                      <li className="flex items-start gap-3"><CheckCircle2 className="w-5 h-5 text-emerald-500 shrink-0 mt-0.5"/><span className="text-slate-600 text-sm md:text-base leading-relaxed"><strong>Motor de carrito integrado:</strong> Permite al usuario sumar múltiples productos y gestionar su propia orden sin fricción.</span></li>
-                      <li className="flex items-start gap-3"><CheckCircle2 className="w-5 h-5 text-emerald-500 shrink-0 mt-0.5"/><span className="text-slate-600 text-sm md:text-base leading-relaxed"><strong>Transparencia transaccional:</strong> Precios a la vista para cualificar prospectos y reducir drásticamente las consultas.</span></li>
-                      <li className="flex items-start gap-3"><CheckCircle2 className="w-5 h-5 text-emerald-500 shrink-0 mt-0.5"/><span className="text-slate-600 text-sm md:text-base leading-relaxed"><strong>Validación logística (Geofencing):</strong> Delimitación de zonas de cobertura para garantizar que solo ingresen pedidos válidos.</span></li>
-                      <li className="flex items-start gap-3"><CheckCircle2 className="w-5 h-5 text-emerald-500 shrink-0 mt-0.5"/><span className="text-slate-600 text-sm md:text-base leading-relaxed"><strong>Recepción estructurada:</strong> Recibí en WhatsApp el detalle exacto de compra, dirección y liquidación total.</span></li>
-                      <li className="flex items-start gap-3"><CheckCircle2 className="w-5 h-5 text-emerald-500 shrink-0 mt-0.5"/><span className="text-slate-600 text-sm md:text-base leading-relaxed"><strong>Automatización de ciclo:</strong> El cliente ejecuta el proceso; tu equipo solo cobra y despacha.</span></li>
+                    <ul className="flex flex-col gap-3 flex-grow text-xs md:text-sm">
+                      <li className="flex items-start gap-2.5"><CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0 mt-0.5"/><span className="text-slate-600 leading-relaxed"><strong>Motor de carrito integrado:</strong> Permite al usuario sumar múltiples productos y gestionar su propia orden sin fricción.</span></li>
+                      <li className="flex items-start gap-2.5"><CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0 mt-0.5"/><span className="text-slate-600 leading-relaxed"><strong>Transparencia transaccional:</strong> Precios a la vista para cualificar prospectos y reducir drásticamente las consultas.</span></li>
+                      <li className="flex items-start gap-2.5"><CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0 mt-0.5"/><span className="text-slate-600 leading-relaxed"><strong>Validación logística (Geofencing):</strong> Delimitación de zonas de cobertura para garantizar que solo ingresen pedidos válidos.</span></li>
+                      <li className="flex items-start gap-2.5"><CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0 mt-0.5"/><span className="text-slate-600 leading-relaxed"><strong>Recepción estructurada:</strong> Recibí en WhatsApp el detalle exacto de compra, dirección y liquidación total.</span></li>
+                      <li className="flex items-start gap-2.5"><CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0 mt-0.5"/><span className="text-slate-600 leading-relaxed"><strong>Automatización de ciclo:</strong> El cliente ejecuta el proceso; tu equipo solo cobra y despacha.</span></li>
                     </ul>
-                    <div className="mt-6 pt-4 border-t border-slate-100">
-                      <p className="text-xs text-slate-400 leading-tight">Mantenimiento a demanda: $15.000 ARS por cada solicitud futura de actualización masiva de precios o imágenes.</p>
+                    <div className="mt-4 pt-3 border-t border-slate-100">
+                      <p className="text-[11px] text-slate-400 leading-tight">Mantenimiento a demanda: $15.000 ARS por cada solicitud futura de actualización masiva de precios o imágenes.</p>
                     </div>
                   </div>
 
@@ -1471,7 +1466,7 @@ export default function Wizard() {
                   {data.domainType === 'COMAR' && <div className="flex justify-between items-center mb-4"><span className="text-lg text-slate-600">Registro Dominio .COM.AR</span><span className="text-lg font-bold text-slate-800">$15.000</span></div>}
                   {data.domainType === 'GRATIS' && <div className="flex justify-between items-center mb-4"><span className="text-lg text-slate-600">Subdominio Gratuito</span><span className="text-lg font-bold text-slate-800">$0</span></div>}
                   
-                  {data.templateSelected === 'T1' && data.t1MenuMode === 'ecommerce' && <div className="flex justify-between items-center mb-4"><span className="text-lg text-slate-600">Módulo E-commerce Lite</span><span className="text-lg font-bold text-slate-800">$30.000</span></div>}
+                  {data.templateSelected === 'T1' && data.t1MenuMode === 'ecommerce' && <div className="flex justify-between items-center mb-4"><span className="text-lg text-slate-600">Módulo E-commerce Lite</span><span className="text-lg font-bold text-green-600 bg-green-50 px-3 py-1 rounded-lg">¡Bonificado!</span></div>}
                   {data.templateSelected === 'T2' && data.t2Dynamic === 'productos' && data.t2ProductMode === 'vitrina' && <div className="flex justify-between items-center mb-4"><span className="text-lg text-slate-600">Catálogo Interactivo</span><span className="text-lg font-bold text-green-600 bg-green-50 px-3 py-1 rounded-lg">¡Bonificado!</span></div>}
                   {data.templateSelected === 'T2' && data.t2Dynamic === 'servicios' && data.t2ServicePricing === 'con_precios' && <div className="flex justify-between items-center mb-4"><span className="text-lg text-slate-600">Lista Interactiva</span><span className="text-lg font-bold text-green-600 bg-green-50 px-3 py-1 rounded-lg">¡Bonificado!</span></div>}
                   
@@ -1523,7 +1518,7 @@ export default function Wizard() {
                 {data.domainType === 'COM' && <div className="flex justify-between items-center"><span className="text-slate-600 font-medium">Dominio .COM</span><span className="font-bold text-slate-800">$30.000</span></div>}
                 {data.domainType === 'COMAR' && <div className="flex justify-between items-center"><span className="text-slate-600 font-medium">Dominio .COM.AR</span><span className="font-bold text-slate-800">$15.000</span></div>}
                 
-                {data.templateSelected === 'T1' && data.t1MenuMode === 'ecommerce' && <div className="flex justify-between items-center"><span className="text-slate-600 font-medium">Modo E-commerce</span><span className="font-bold text-slate-800">$30.000</span></div>}
+                {data.templateSelected === 'T1' && data.t1MenuMode === 'ecommerce' && <div className="flex justify-between items-center"><span className="text-slate-600 font-medium">Modo E-commerce</span><span className="font-bold text-green-500 bg-green-50 px-2 py-0.5 rounded">¡Bonificado!</span></div>}
                 {data.templateSelected === 'T2' && data.t2Dynamic === 'productos' && data.t2ProductMode === 'vitrina' && <div className="flex justify-between items-center"><span className="text-slate-600 font-medium">Catálogo Interactivo</span><span className="font-bold text-green-500 bg-green-50 px-2 py-0.5 rounded">¡Bonificado!</span></div>}
                 {data.templateSelected === 'T2' && data.t2Dynamic === 'servicios' && data.t2ServicePricing === 'con_precios' && <div className="flex justify-between items-center"><span className="text-slate-600 font-medium">Lista de Precios</span><span className="font-bold text-green-500 bg-green-50 px-2 py-0.5 rounded">¡Bonificado!</span></div>}
                 
@@ -1542,11 +1537,11 @@ export default function Wizard() {
       )}
 
       {currentStep.id !== 'WELCOME' && currentStep.id !== 'END' && (
-        <div className="fixed bottom-0 left-0 w-full px-4 py-4 md:py-6 bg-white/95 backdrop-blur-lg border-t border-slate-200 z-[50]">
+        <div className="fixed bottom-0 left-0 w-full px-4 py-3 md:py-4 bg-white/95 backdrop-blur-lg border-t border-slate-200 z-[50]">
           <div className="max-w-4xl mx-auto flex justify-between">
-            <button onClick={prevStep} className="p-4 md:p-5 rounded-full bg-white shadow-md border border-slate-100 hover:bg-slate-50 transition-colors"><ArrowLeft className="w-6 h-6 md:w-8 md:h-8 text-slate-600"/></button>
-            <button onClick={nextStep} disabled={isNextDisabled()} className={`px-8 md:px-12 py-4 md:py-5 rounded-full font-bold text-lg md:text-xl flex items-center gap-3 ${isNextDisabled() ? 'bg-slate-200 text-slate-400' : 'bg-blue-600 text-white hover:scale-105 shadow-xl shadow-blue-600/30 transition-all'}`}>
-              {isNextDisabled() ? 'Falta info' : 'Siguiente'} <ArrowRight className="w-5 h-5 md:w-6 md:h-6"/>
+            <button onClick={prevStep} className="p-3 md:p-3.5 rounded-full bg-white shadow-md border border-slate-100 hover:bg-slate-50 transition-colors"><ArrowLeft className="w-5 h-5 md:w-6 md:h-6 text-slate-600"/></button>
+            <button onClick={nextStep} disabled={isNextDisabled()} className={`px-7 md:px-10 py-3 md:py-3.5 rounded-full font-bold text-base md:text-lg flex items-center gap-2.5 ${isNextDisabled() ? 'bg-slate-200 text-slate-400' : 'bg-blue-600 text-white hover:scale-105 shadow-xl shadow-blue-600/30 transition-all'}`}>
+              {isNextDisabled() ? 'Falta info' : 'Siguiente'} <ArrowRight className="w-4 h-4 md:w-5 md:h-5"/>
             </button>
           </div>
         </div>
